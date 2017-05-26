@@ -401,6 +401,8 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
           builder.secrets(azureTemplateOptions.getSecrets());
       }
 
+      builder.customData(azureTemplateOptions.getCustomData());
+
       return builder.build();
    }
 

@@ -41,7 +41,17 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    private List<IpOptions> ipOptions = ImmutableList.of();
    private WindowsConfiguration windowsConfiguration;
    private List<Secrets> secrets = ImmutableList.of();
-   
+   private String customData;
+   private String keyVaultIdAndSecret;
+
+   /**
+    * Custom data (for cloud init) for the Azure ARM API
+    */
+   public  AzureTemplateOptions customData(String customData) {
+      this.customData = customData;
+      return this;
+   }
+
    /**
     * Sets the availability set where the nodes will be configured. If it does
     * not exist jclouds will create a new one with the given configuration.
@@ -114,6 +124,14 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
     }
 
    /**
+    * Sets the KeyVault id and secret separated with ":"
+    */
+   public  AzureTemplateOptions keyVaultIdAndSecret(String keyVaultIdAndSecret) {
+      this.keyVaultIdAndSecret = keyVaultIdAndSecret;
+      return this;
+   }
+
+   /**
     * Import certificates in the Windows Certificate Store
     *
     * @see <a href="https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/virtualmachines-create-or-update#bk_srcvault">docs</a>
@@ -132,6 +150,8 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    public List<IpOptions> getIpOptions() { return ipOptions; }
    public WindowsConfiguration getWindowsConfiguration() { return windowsConfiguration; }
    public List<Secrets> getSecrets() { return secrets; }
+   public String getCustomData() { return customData; }
+   public String getKeyVaultIdAndSecret() { return keyVaultIdAndSecret; }
 
    @Override
    public AzureTemplateOptions clone() {
@@ -152,6 +172,8 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          eTo.ipOptions(ipOptions);
          eTo.windowsConfiguration(windowsConfiguration);
          eTo.secrets(secrets);
+         eTo.customData(customData);
+         eTo.keyVaultIdAndSecret(keyVaultIdAndSecret);
       }
    }
 
@@ -169,13 +191,15 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
             Objects.equal(dataDisks, that.dataDisks) &&
             Objects.equal(ipOptions, that.ipOptions) &&
             Objects.equal(windowsConfiguration, that.windowsConfiguration) &&
-            Objects.equal(secrets, that.secrets);
+            Objects.equal(secrets, that.secrets) &&
+            Objects.equal(this.customData, that.customData) &&
+            Objects.equal(this.keyVaultIdAndSecret, that.keyVaultIdAndSecret);
    }
 
    @Override
    public int hashCode() {
       return Objects.hashCode(availabilitySet, availabilitySetName, dataDisks,
-            resourceGroup, ipOptions);
+            resourceGroup, ipOptions, customData, keyVaultIdAndSecret);
    }
 
    @Override
@@ -195,11 +219,23 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
           toString.add("windowsConfiguration", windowsConfiguration);
       if (!secrets.isEmpty())
           toString.add("secrets", secrets);
+      if (customData != null)
+         toString.add("customData", customData);
+      if (keyVaultIdAndSecret != null)
+         toString.add("keyVaultIdAndSecret", keyVaultIdAndSecret);
       return toString;
    }
 
    public static class Builder {
-      
+
+      /**
+       * @see AzureTemplateOptions#customData
+       */
+      public static AzureTemplateOptions customData(String customData) {
+         AzureTemplateOptions options = new AzureTemplateOptions();
+         return options.customData(customData);
+      }
+
       /**
        * @see AzureTemplateOptions#availabilitySet(AvailabilitySet)
        */
@@ -207,7 +243,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          AzureTemplateOptions options = new AzureTemplateOptions();
          return options.availabilitySet(availabilitySet);
       }
-      
+
       /**
        * @see AzureTemplateOptions#availabilitySet(String)
        */
@@ -270,6 +306,14 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
       public static AzureTemplateOptions secrets(Iterable<? extends Secrets> secrets) {
          AzureTemplateOptions options = new AzureTemplateOptions();
          return options.secrets(secrets);
+      }
+
+      /**
+       * @see AzureTemplateOptions#keyVaultIdAndSecret
+       */
+      public static AzureTemplateOptions keyVaultIdAndSecret(String keyVaultIdAndSecret) {
+         AzureTemplateOptions options = new AzureTemplateOptions();
+         return options.keyVaultIdAndSecret(keyVaultIdAndSecret);
       }
    }
 }

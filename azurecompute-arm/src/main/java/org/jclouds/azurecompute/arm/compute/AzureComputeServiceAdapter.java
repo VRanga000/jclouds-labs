@@ -23,6 +23,7 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.io.BaseEncoding.base64;
 import static org.jclouds.azurecompute.arm.compute.domain.LocationAndName.fromSlashEncoded;
 import static org.jclouds.azurecompute.arm.compute.domain.ResourceGroupAndName.fromResourceGroupAndName;
 import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.getMarketplacePlanFromImageMetadata;
@@ -44,6 +45,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.google.common.base.Strings;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.PublicIpAvailablePredicateFactory;
 import org.jclouds.azurecompute.arm.compute.domain.ResourceGroupAndName;
@@ -381,7 +383,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       OSProfile.Builder builder = OSProfile.builder().adminUsername(adminUsername).adminPassword(adminPassword)
               .computerName(computerName);
 
-      if (template.getOptions().getPublicKey() != null
+      if (!Strings.isNullOrEmpty(template.getOptions().getPublicKey())
               && OsFamily.WINDOWS != template.getImage().getOperatingSystem().getFamily()) {
          OSProfile.LinuxConfiguration linuxConfiguration = OSProfile.LinuxConfiguration.create("true",
                  OSProfile.LinuxConfiguration.SSH.create(of(OSProfile.LinuxConfiguration.SSH.SSHPublicKey
@@ -401,7 +403,10 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
           builder.secrets(azureTemplateOptions.getSecrets());
       }
 
-      builder.customData(azureTemplateOptions.getCustomData());
+      if (!Strings.isNullOrEmpty(azureTemplateOptions.getCustomData())) {
+         String encodedCustomData = base64().encode(azureTemplateOptions.getCustomData().getBytes());
+         builder.customData(encodedCustomData);
+      }
 
       return builder.build();
    }
